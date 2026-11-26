@@ -6,7 +6,7 @@ from .cache_service import CacheService
 class NportService:
     def __init__(self):
         self.headers = {
-            "User-Agent": "Prospect NPORT API contact email@example.com",
+            "User-Agent": "NPORT API contact js-nport@example.com",
             "Accept-Encoding": "gzip, deflate",
         }
         self.cache = CacheService()
@@ -59,18 +59,52 @@ class NportService:
                 },
                 "holdings": [
                     {
-                        "cusip": holding.get("cusip"),
-                        "name": holding.get("name") or holding.get("title"),
+                        "cusip": self.get_cusip(holding),
+                        "isin": holding.get("identifiers", {}).get("isin", {}).get("@value"),
+                        "lei": holding.get("lei"),
+                        "name":  self.clean_value(holding.get("name")) or self.clean_value(holding.get("title")),
                         "balance": holding.get("balance"),
-                        "value": holding.get("valUSD")
+                        "value": holding.get("valUSD"),
+                        "pctVal": holding.get("pctVal"),
+                        "assetCat": holding.get("assetCat"),
+                        "issuerCat": self.clean_value(
+                            holding.get("issuerCat") or
+                            holding.get("issuerConditional", {}).get("@issuerCat")
+                        ),
+                        "fairValLevel": holding.get("fairValLevel"),
+                        "payoffProfile": holding.get("payoffProfile"),
+                        "invCountry": holding.get("invCountry"),
                     }
                     for holding in holdings
                 ]
             }
         }
+
+    def clean_value(self, value):
+        if value in [None, "", "N/A"]:
+            return None
+
+        return value
+
+    def get_cusip(self, holding: dict):
+        cusip = holding.get("cusip")
+
+        if cusip and cusip not in ["N/A", "000000000"]:
+            return cusip
+
+        derivative_info = holding.get("derivativeInfo", {})
+        swap_deriv = derivative_info.get("swapDeriv", {})
+        ref_instrument = swap_deriv.get("descRefInstrmnt", {})
+        other_ref = ref_instrument.get("otherRefInst", {})
+        identifiers = other_ref.get("identifiers", {})
+        nested_cusip = identifiers.get("cusip", {}).get("@value")
+
+        if nested_cusip:
+            return nested_cusip
+
+        return None
     
     async def get_latest_filing(self, cik: str):
-
         cache_key = f"latest:{cik}"
 
         latest_filing = self.cache.get(cache_key)
@@ -93,7 +127,6 @@ class NportService:
         return latest_filing
 
     async def fetch_filing_history(self, cik: str):
-
         submissions_url = (
             f"https://data.sec.gov/submissions/CIK{cik}.json"
         )
@@ -121,7 +154,6 @@ class NportService:
                 )
 
     def find_latest_filing(self, submissions: dict):
-
         filings = submissions["filings"]["recent"]
 
         results = []

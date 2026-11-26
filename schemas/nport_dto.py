@@ -1,5 +1,6 @@
 
 from pydantic import BaseModel
+from typing import Any
 
 
 class FilingDTO(BaseModel):
@@ -20,9 +21,17 @@ class FundInfoDTO(BaseModel):
 
 class HoldingDTO(BaseModel):
     cusip: str | None = None
+    isin: str | None = None
+    lei: str | None = None
     name: str | None = None
     balance: str | None = None
     value: str | None = None
+    pctVal: str | None = None
+    assetCat: str | None
+    issuerCat: str | None
+    fairValLevel: str | None
+    payoffProfile: str | None
+    invCountry: str | None
 
 
 class FormDataDTO(BaseModel):
