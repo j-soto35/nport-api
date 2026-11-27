@@ -120,8 +120,8 @@ class NportService:
             self.cache.set(
                 cache_key,
                 latest_filing,
-                # 12 hours
-                expire=43200
+                # 1 hour
+                expire=3600
             )
 
         return latest_filing

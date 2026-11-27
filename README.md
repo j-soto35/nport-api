@@ -1,5 +1,5 @@
 
-# Prospect N-PORT API
+# N-PORT API
 
 A FastAPI service that retrieves the latest SEC N-PORT filing for a fund using its CIK, parses the filing XML, and returns normalized fund and holding data.
 
@@ -18,7 +18,7 @@ Prospect uses DiskCache to reduce redundant requests to SEC EDGAR.
 
 | Cache key | Data | TTL |
 |---|---|---|
-| `latest:{cik}` | Latest filing metadata | 12 hours |
+| `latest:{cik}` | Latest filing metadata | 1 hour |
 | `filing:{accession}` | Raw filing XML | No expiration |
 
 Filing metadata is refreshed periodically, while retrieved filing documents are cached by accession number and reused.
